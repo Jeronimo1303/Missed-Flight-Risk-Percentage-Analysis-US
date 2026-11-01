@@ -1,0 +1,36 @@
+column,role,decision,strength,auc_value,auc_missingness,pct_missing_sample,needs_review,reason
+DepDelay,leak,DROP,1.0,1.0,0.5,0.0,False,Retraso real de salida en minutos: DepDel15 = (DepDelay >= 15).
+DepDelayMinutes,leak,DROP,1.0,1.0,0.5,0.0,False,DepDelay con piso en 0: misma información que el objetivo.
+DepartureDelayGroups,leak,DROP,1.0,1.0,0.5,0.0,False,Rangos de 15 minutos de DepDelay; grupo >= 1 es exactamente el objetivo.
+ArrDelay,leak,DROP,0.9568988586141343,0.9568988586141343,0.5019379469276971,0.003292,False,"Resultado de llegada, fuertemente ligado al retraso de salida."
+ArrDel15,leak,DROP,0.8710579050058487,0.8710579050058487,0.5019379469276971,0.003292,False,Resultado de llegada (retraso de llegada >= 15).
+CarrierDelay,leak,DROP,0.8710579050058487,0.5487796157336847,0.8710579050058487,0.78515,False,"Desglose de causas del retraso, registrado después de los hechos."
+WeatherDelay,leak,DROP,0.8710579050058487,0.5265722769986773,0.8710579050058487,0.78515,False,"Desglose de causas del retraso, registrado después de los hechos."
+NASDelay,leak,DROP,0.8710579050058487,0.6237505064337494,0.8710579050058487,0.78515,False,"Desglose de causas del retraso, registrado después de los hechos."
+SecurityDelay,leak,DROP,0.8710579050058487,0.5019756671054452,0.8710579050058487,0.78515,False,"Desglose de causas del retraso, registrado después de los hechos."
+LateAircraftDelay,leak,DROP,0.8710579050058487,0.5883862618053437,0.8710579050058487,0.78515,False,"Desglose de causas del retraso, registrado después de los hechos."
+DepTime,leak,DROP,0.6715830704755201,0.6715830704755201,0.5,0.0,False,Hora de salida REAL: DepTime - CRSDepTime es el objetivo por construcción.
+WheelsOff,leak,DROP,0.667317998432733,0.667317998432733,0.5006195543198796,0.000497,False,"Hora real de despegue, posterior a la salida."
+TaxiOut,leak,DROP,0.5205398427577146,0.5205398427577146,0.5006195543198796,0.000497,False,Se mide después del pushback.
+Diverted,leak,DROP,0.5012401148143579,0.5012401148143579,0.5,0.0,False,Resultado que ocurre después de la salida.
+Cancelled,leak,DROP,0.5006978321133393,0.5006978321133393,0.5,0.0,False,"Resultado del vuelo. El objetivo es nulo cuando vale 1; se usa para filtrar FILAS, nunca como variable predictora."
+CancellationCode,leak,DROP,0.5006793669824307,0.5006793669824307,0.5,0.999398,False,"Motivo de una cancelación, registrado después."
+Tail_Number,identifier,KEEP (high-cardinality),0.5598810382693303,0.5598810382693303,0.5,0.0,False,La aeronave suele asignarse de antemano pero puede cambiarse; alta cardinalidad. Base para variables legítimas de 'vuelo anterior de la misma aeronave' más adelante.
+Flight_Number_Reporting_Airline,identifier,KEEP (high-cardinality),0.5204717295915717,0.5204717295915717,0.5,0.0,False,"Conocido de antemano; cardinalidad muy alta, usar con cuidado (codificación por objetivo solo dentro del periodo de entrenamiento)."
+DepTimeBlk,feature,KEEP,0.6405322926625472,0.6405322926625472,0.5,0.0,False,Bloque horario de la salida PROGRAMADA (verificado en 6.2).
+CRSDepTime,feature,KEEP,0.6381840063652493,0.6381840063652493,0.5,0.0,False,Hora de salida programada (CRS).
+CRSArrTime,feature,KEEP,0.6209576901633369,0.6209576901633369,0.5,0.0,False,Hora de llegada programada (CRS).
+FlightDate,feature,KEEP,0.6165917812401851,0.6165917812401851,0.5,0.0,False,Fecha programada. También es la clave para una división temporal entrenamiento/prueba.
+Reporting_Airline,feature,KEEP,0.5717541186411,0.5717541186411,0.5,0.0,False,"Aerolínea operadora, fijada en el itinerario."
+Origin,feature,KEEP,0.560063096522924,0.560063096522924,0.5,0.0,False,Aeropuerto de origen programado.
+OriginState,feature,KEEP,0.5497691147914752,0.5497691147914752,0.5,0.0,False,Derivada de Origin.
+Dest,feature,KEEP,0.5437549650462229,0.5437549650462229,0.5,0.0,False,Aeropuerto de destino programado.
+DestState,feature,KEEP,0.5335616264294286,0.5335616264294286,0.5,0.0,False,Derivada de Dest.
+Distance,feature,KEEP,0.5228609799981561,0.5228609799981561,0.5,0.0,False,"Distancia ortodrómica (círculo máximo), fija según la ruta."
+DayOfWeek,feature,KEEP,0.5206935511959099,0.5206935511959099,0.5,0.0,False,"Calendario, conocido de antemano."
+CRSElapsedTime,feature,KEEP,0.5201889179689427,0.5201889179689427,0.5,0.0,False,Tiempo de bloque programado.
+Year,feature,KEEP,0.5115560754205789,0.5115560754205789,0.5,0.0,False,"Calendario, conocido de antemano."
+Quarter,feature,KEEP,0.5068823167231206,0.5068823167231206,0.5,0.0,False,"Calendario, conocido de antemano."
+Month,feature,KEEP,0.5062053051169104,0.5062053051169104,0.5,0.0,False,"Calendario, conocido de antemano."
+DayofMonth,feature,KEEP,0.5040426850043946,0.5040426850043946,0.5,0.0,False,"Calendario, conocido de antemano."
+DepDel15,target,TARGET,,,,,False,Objetivo: 1 si el vuelo salió 15+ min después de su hora programada.
