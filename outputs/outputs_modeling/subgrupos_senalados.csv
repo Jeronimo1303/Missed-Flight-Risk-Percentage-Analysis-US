@@ -1,0 +1,13 @@
+dimensión,subgrupo,vuelos,motivo
+Aerolínea,AS,44175,ROC-AUC 0.717 (global 0.774); lift PR-AUC 2.09 (global 2.50)
+Aerolínea,HA,3772,sesgo 0.80 vs global 1.00 (subestima más que el resto)
+Aerolínea,MQ,45318,ROC-AUC 0.742 (global 0.774)
+Aerolínea,YX,50080,sesgo 0.87 vs global 1.00 (subestima más que el resto)
+Aerolínea,F9,30059,ROC-AUC 0.739 (global 0.774); lift PR-AUC 2.09 (global 2.50)
+Franja horaria,Madrugada (0–5 h),29412,ROC-AUC 0.651 (global 0.774); lift PR-AUC 1.97 (global 2.50)
+Franja horaria,Mañana (6–11 h),396349,ROC-AUC 0.705 (global 0.774)
+Franja horaria,Noche (18–24 h),219128,lift PR-AUC 1.99 (global 2.50)
+Aeropuerto de origen,IAH,16973,ROC-AUC 0.730 (global 0.774)
+Aeropuerto de origen,BOS,20324,sesgo 0.90 vs global 1.00 (subestima más que el resto)
+Aeropuerto de origen,LGA,18673,sesgo 0.90 vs global 1.00 (subestima más que el resto)
+Aeropuerto de origen,CLT,25590,sesgo 1.17 vs global 1.00 (sobreestima más que el resto)

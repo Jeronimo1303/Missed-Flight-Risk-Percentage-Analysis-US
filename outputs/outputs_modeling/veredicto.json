@@ -1,0 +1,14 @@
+{
+  "mejor_modelo": "LightGBM",
+  "primero_en_pr_auc": "LightGBM",
+  "empatados": [
+    "LightGBM"
+  ],
+  "criterio": "PR-AUC en prueba; bootstrap pareado IC95; parsimonia ante empate",
+  "pr_auc_prueba": {
+    "Regresión logística": 0.5226237326068851,
+    "LightGBM": 0.5737483801497436,
+    "XGBoost": 0.5715232615933348,
+    "K-means (tasa por clúster)": 0.44652211105409556
+  }
+}
