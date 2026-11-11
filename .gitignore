@@ -1,3 +1,4 @@
-./data/silver
-./src/duckdb_tmp
-./outputs_eda
+data/silver
+src/duckdb_tmp
+outputs\outputs_eda
+outputs\outputs_modeling
