@@ -6,9 +6,9 @@
   ],
   "criterio": "PR-AUC en prueba; bootstrap pareado IC95; parsimonia ante empate",
   "pr_auc_prueba": {
-    "Regresión logística": 0.5226237326068851,
-    "LightGBM": 0.5737483801497436,
-    "XGBoost": 0.5715232615933348,
-    "K-means (tasa por clúster)": 0.44652211105409556
+    "Regresión logística": 0.4887277680587835,
+    "LightGBM": 0.5446222551488463,
+    "XGBoost": 0.5424049189175967,
+    "K-means (tasa por clúster)": 0.41869749594969063
   }
 }

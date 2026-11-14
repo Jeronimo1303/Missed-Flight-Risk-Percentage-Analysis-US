@@ -2,14 +2,17 @@
   "train_end": "2024-12-31",
   "val_end": "2025-08-31",
   "warmup_days": 60,
-  "n_train": 2000000,
+  "n_train": 4000000,
   "n_val": 1000000,
   "n_test": 1000000,
+  "pred_horizon_min": 240,
+  "cost_fp": 1,
+  "cost_fn": 3,
   "hist_window_days": 30,
   "hist_smooth": 50,
   "prior": 0.20835286005710588,
   "seed": 42,
-  "features": [
+  "features_full": [
     "Distance",
     "CRSElapsedTime",
     "dep_min",
@@ -36,12 +39,27 @@
     "tail_rate_all",
     "tail_rate_30d",
     "origin_hr_rate_all",
-    "origin_hr_rate_30d"
+    "origin_hr_rate_30d",
+    "origin_dep_load",
+    "origin_day_load",
+    "dest_arr_load",
+    "tail_leg_num",
+    "turnaround_min",
+    "prev_leg_delayed",
+    "tail_delayed_known",
+    "tail_known_legs",
+    "origin_known_today",
+    "origin_delay_rate_today"
   ],
-  "thresholds_val_max_f1": {
-    "Regresi\u00f3n log\u00edstica": 0.22134368399255794,
-    "LightGBM (est\u00e1ticas)": 0.2039209921421066,
-    "LightGBM + historial": 0.21856447864060422,
-    "LightGBM + historial (ponderado)": 0.49736003892248315
-  }
+  "thresholds_cost_val": {
+    "Regresi\u00f3n log\u00edstica": 0.24570413770232746,
+    "LightGBM": 0.2521270400111116,
+    "XGBoost": 0.24979852139949799,
+    "K-means (tasa por cl\u00faster)": 0.2373772841991927,
+    "[ablaci\u00f3n] LightGBM est\u00e1ticas": 0.23983065023422032,
+    "[ablaci\u00f3n] LightGBM + historial": 0.2506665287525292,
+    "[ablaci\u00f3n] LightGBM + horario/rotaci\u00f3n": 0.2535384795438809,
+    "[experimento] LightGBM ponderado": 0.559879378860297
+  },
+  "k_means_k": 100
 }

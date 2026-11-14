@@ -2,3 +2,4 @@ data/silver
 data/gold
 src/duckdb_tmp
 outputs/
+src\utils\__pycache__
