@@ -1,4 +1,4 @@
 data/silver
+data/gold
 src/duckdb_tmp
-outputs\outputs_eda
-outputs\outputs_modeling
+outputs/
