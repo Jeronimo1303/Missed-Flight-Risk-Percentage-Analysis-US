@@ -1,0 +1,13 @@
+{
+ "umbral_costo": 0.24893198913169748,
+ "metricas_prueba": {
+  "roc_auc": 0.7564073827776029,
+  "pr_auc": 0.5400613465851559,
+  "ece": 0.0033602908616861857,
+  "precision": 0.44569488131128987,
+  "recall": 0.593822505800464
+ },
+ "n_train": 1500000,
+ "horizonte_min": 240,
+ "nota": "LightGBM reentrenado con el código del notebook src/flight_delay_modeling.ipynb (mismas variables y parámetros; 1,5 M filas de entrenamiento en vez de 4 M por memoria). Notebook original: PR-AUC 0,545."
+}
