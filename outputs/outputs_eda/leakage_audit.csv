@@ -28,7 +28,7 @@ Dest,feature,KEEP,0.5437549650462229,0.5437549650462229,0.5,0.0,False,Aeropuerto
 DestState,feature,KEEP,0.5335616264294286,0.5335616264294286,0.5,0.0,False,Derivada de Dest.
 Distance,feature,KEEP,0.5228609799981561,0.5228609799981561,0.5,0.0,False,"Distancia ortodrómica (círculo máximo), fija según la ruta."
 DayOfWeek,feature,KEEP,0.5206935511959099,0.5206935511959099,0.5,0.0,False,"Calendario, conocido de antemano."
-CRSElapsedTime,feature,KEEP,0.5201889179689427,0.5201889179689427,0.5,0.0,False,Tiempo de bloque programado.
+CRSElapsedTime,feature,KEEP,0.5201883184613175,0.5201883184613175,0.500000636952412,1e-06,False,Tiempo de bloque programado.
 Year,feature,KEEP,0.5115560754205789,0.5115560754205789,0.5,0.0,False,"Calendario, conocido de antemano."
 Quarter,feature,KEEP,0.5068823167231206,0.5068823167231206,0.5,0.0,False,"Calendario, conocido de antemano."
 Month,feature,KEEP,0.5062053051169104,0.5062053051169104,0.5,0.0,False,"Calendario, conocido de antemano."

@@ -10,7 +10,7 @@
   "cost_fn": 3,
   "hist_window_days": 30,
   "hist_smooth": 50,
-  "prior": 0.20835286005710588,
+  "prior": 0.20835265687609356,
   "seed": 42,
   "features_full": [
     "Distance",
@@ -52,14 +52,14 @@
     "origin_delay_rate_today"
   ],
   "thresholds_cost_val": {
-    "Regresi\u00f3n log\u00edstica": 0.24570413770232746,
-    "LightGBM": 0.2521270400111116,
-    "XGBoost": 0.24979852139949799,
-    "K-means (tasa por cl\u00faster)": 0.2373772841991927,
-    "[ablaci\u00f3n] LightGBM est\u00e1ticas": 0.23983065023422032,
-    "[ablaci\u00f3n] LightGBM + historial": 0.2506665287525292,
-    "[ablaci\u00f3n] LightGBM + horario/rotaci\u00f3n": 0.2535384795438809,
-    "[experimento] LightGBM ponderado": 0.559879378860297
+    "Regresi\u00f3n log\u00edstica": 0.25437035595987234,
+    "LightGBM": 0.24973502800580358,
+    "XGBoost": 0.252949059009552,
+    "K-means (tasa por cl\u00faster)": 0.2413834858186756,
+    "[ablaci\u00f3n] LightGBM est\u00e1ticas": 0.2411013435123397,
+    "[ablaci\u00f3n] LightGBM + historial": 0.2420947403503297,
+    "[ablaci\u00f3n] LightGBM + horario/rotaci\u00f3n": 0.24959086256302623,
+    "[experimento] LightGBM ponderado": 0.553426616428944
   },
   "k_means_k": 100
 }
