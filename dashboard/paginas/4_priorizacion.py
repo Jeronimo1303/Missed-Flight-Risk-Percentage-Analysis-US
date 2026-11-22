@@ -94,8 +94,9 @@ dias = sorted(pred["fecha"].unique())
 c_dia, c_n = st.columns([1, 2])
 # Por defecto: el día que el modelo anticipaba como más complicado (riesgo promedio más alto).
 dia_default = pred.groupby("fecha")["prob"].mean().idxmax()
-dia = c_dia.date_input("Día", value=dia_default, min_value=dias[0], max_value=dias[-1], format="DD/MM/YYYY",
-                       key="dia_prior")
+if "dia_prior" not in st.session_state:          # así el botón de los 3 casos puede cambiar el día
+    st.session_state["dia_prior"] = dia_default
+dia = c_dia.date_input("Día", min_value=dias[0], max_value=dias[-1], format="DD/MM/YYYY", key="dia_prior")
 n_rev = c_n.slider("¿Cuántos vuelos puede revisar tu equipo ese día?", min_value=10, max_value=300,
                    value=50, step=10, key="n_rev")
 
@@ -253,6 +254,66 @@ if len(ph) >= 3:
     fig_d.update_yaxes(title="% de vuelos con retraso", tickformat=".0%")
     fig_d.update_xaxes(title="Hora programada de salida")
     st.plotly_chart(fig_d, width="stretch")
+
+# ---------------------------------------------------------------------------
+# Tres casos reales explicados: cuándo acierta el modelo, cuándo da falsa alarma y qué
+# retraso no vio. Responde a la rúbrica: predicciones individuales, por qué acierta o falla
+# y qué decisión toma el usuario. Valores leídos de las predicciones (no escritos a mano).
+# ---------------------------------------------------------------------------
+from datetime import date  # noqa: E402
+
+DIA_CASOS = date(2026, 8, 9)   # domingo: día típico de mucha operación
+pct_ = lambda v: pct(v, 0).replace(" ", "\u00a0")   # que "36 %" no se parta en dos líneas
+CASOS = [
+    {"tipo": "✅ Acierto", "clase": "enfasis", "aer": "WN", "vuelo": 3416, "origen": "LAS",
+     "por_que": lambda r: (f"Era el vuelo n.º {ent(r['tail_leg_num'])} del avión ese día, su vuelo anterior ya había "
+                           f"salido tarde, tenía solo {ent(r['turnaround_min'])} min entre llegar y volver a salir, y "
+                           f"{r['Origin']} llevaba {pct_(r['origin_delay_rate_today'])} de salidas tarde. "
+                           "Todas las señales apuntaban al mismo lado: efecto dominó."),
+     "decision": "Alistar tripulación de reserva y reacomodar desde temprano a los pasajeros con conexión."},
+    {"tipo": "⚠️ Falsa alarma", "clase": "", "aer": "WN", "vuelo": 545, "origen": "BWI",
+     "por_que": lambda r: (f"El modelo vio que el avión venía atrasado, que era de noche y que {r['Origin']} llevaba "
+                           f"{pct_(r['origin_delay_rate_today'])} de salidas tarde. Pero el avión tenía "
+                           f"{ent(r['turnaround_min'])} min de margen entre vuelos y alcanzó a recuperar el retraso."),
+     "decision": "Lo revisa, ve el margen amplio y lo deja en vigilancia. La falsa alarma costó minutos de revisión."},
+    {"tipo": "❌ Retraso que no vio", "clase": "alerta", "aer": "UA", "vuelo": 2608, "origen": "LAS",
+     "por_que": lambda r: ("Era el primer vuelo del avión en el día: no había vuelo anterior del cual «contagiarse». "
+                           f"A esa hora, en {r['Origin']}, solo {pct_(r['origin_hr_rate_30d'])} de los vuelos salían "
+                           "tarde el último mes. La causa estuvo en algo que el modelo no sabía 4 horas antes "
+                           "(los datos no traen la causa del retraso)."),
+     "decision": "No confiar solo en el modelo para los primeros vuelos del día: ahí revisar mantenimiento y "
+                 "tripulación por aparte (ver página 5: la madrugada es donde el modelo es más débil)."},
+]
+
+casos = []
+for c in CASOS:
+    m = pred[(pred["fecha"] == DIA_CASOS) & (pred["Reporting_Airline"] == c["aer"])
+             & (pred["flight_num"] == c["vuelo"]) & (pred["Origin"] == c["origen"])]
+    if len(m):
+        casos.append((c, m.iloc[0]))
+
+if len(casos) == len(CASOS):
+    st.subheader("Tres vuelos para entender al modelo: cuándo acierta y cuándo falla")
+    dia_txt = DIA_CASOS.strftime("%d/%m/%Y")
+    base_dia = pred.loc[(pred["fecha"] == DIA_CASOS) & (pred["rotacion_imposible"] == 0), "DepDel15"].mean()
+    st.caption(f"Domingo {dia_txt}: ese día salieron tarde {round(base_dia * 100)} de cada 100 vuelos. "
+               "Tres casos reales del mismo día, sin rotación imposible.")
+    cols = st.columns(3, gap="medium")
+    for col, (c, r) in zip(cols, casos):
+        with col:
+            st.markdown(f"#### {c['tipo']}")
+            st.markdown(f"**{r['Reporting_Airline']} {ent(r['flight_num'])} · {r['Origin']} → {r['Dest']} · "
+                        f"{hhmm(r['dep_min'])}**")
+            st.markdown(kpi("Riesgo que calculó el modelo", pct(r["prob"], 0),
+                            "⏰ salió con 15+ min de retraso" if r["DepDel15"] == 1 else "✅ salió a tiempo",
+                            clase=c["clase"]), unsafe_allow_html=True)
+            st.markdown(f"**Por qué:** {c['por_que'](r)}")
+            st.markdown(f"**Qué hace el supervisor:** {c['decision']}")
+
+    def _ir_al_dia():
+        st.session_state["dia_prior"] = DIA_CASOS
+    st.button(f"Ver la lista completa del {dia_txt}", on_click=_ir_al_dia, key="btn_dia_casos")
+    st.write("")
 
 st.markdown(
     f"""<div class="mensaje">

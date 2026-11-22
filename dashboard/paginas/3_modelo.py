@@ -36,6 +36,9 @@ comp = comp[comp["umbral_tipo"] == "costo (validación)"].set_index("modelo")
 config = json.loads((DATA / "modelo" / "run_config.json").read_text(encoding="utf-8"))
 azar = float((topk["precision"] / topk["lift"]).mean())          # tasa base del tramo de prueba
 franja = cargar_modelo("subgrupos_franja_horaria")
+ELEGIDO = "LightGBM"                      # modelo que el equipo puso en producción
+# Tiempo de entrenamiento de la corrida final en AWS SageMaker (21-nov-2026, mismos datos para ambos)
+TIEMPO_AWS_S = {"LightGBM": 716.6, "XGBoost": 2516.6}
 temporada = cargar_modelo("subgrupos_temporada")
 
 # ---------------------------------------------------------------------------
@@ -123,12 +126,18 @@ with col_a:
     m = pd.concat([m, pd.DataFrame([{"nombre": "Adivinar al azar", "pr_auc": azar}])],
                   ignore_index=True).sort_values("pr_auc")
     mejor = comp.loc[candidatos, "pr_auc"].idxmax()
-    veces = comp.loc[mejor, "pr_auc"] / azar
-    titulo_2 = (f"{mejor} fue el mejor de 4 modelos:<br>encuentra los retrasos "
-                f"{veces:.1f} veces mejor que adivinar".replace(".", ","))
+    dif = comp.loc[mejor, "pr_auc"] - comp.loc[ELEGIDO, "pr_auc"]
+    veces = comp.loc[ELEGIDO, "pr_auc"] / azar
+    lento = TIEMPO_AWS_S["XGBoost"] / TIEMPO_AWS_S["LightGBM"]
+    if mejor == ELEGIDO:
+        titulo_2 = (f"{ELEGIDO} fue el mejor de 4 modelos:<br>encuentra los retrasos "
+                    f"{veces:.1f} veces mejor que adivinar".replace(".", ","))
+    else:   # decisión del equipo: casi el mismo acierto con mucho menos tiempo de entrenamiento
+        titulo_2 = (f"{mejor} acierta apenas {dif:.3f} más, pero tarda<br>"
+                    f"{lento:.1f} veces más en entrenar: escogimos {ELEGIDO}".replace(".", ","))
     fig2 = go.Figure(go.Bar(
         y=m["nombre"], x=m["pr_auc"], orientation="h",
-        marker_color=[DORADO if n == mejor else (GRIS if n == "Adivinar al azar" else GRIS_CLARO)
+        marker_color=[DORADO if n == ELEGIDO else (GRIS if n == "Adivinar al azar" else GRIS_CLARO)
                       for n in m["nombre"]],
         text=[f"{v:.3f}".replace(".", ",") for v in m["pr_auc"]], textposition="outside",
         textfont=dict(size=12, color=TEXTO_SUAVE), cliponaxis=False,
@@ -140,84 +149,115 @@ with col_a:
     fig2.update_yaxes(showgrid=False, title=None)
     fig2.update_layout(bargap=0.4, margin=dict(t=80))
     st.plotly_chart(fig2, width="stretch")
-    st.caption("PR-AUC mide qué tan bien el modelo pone los vuelos que se retrasan arriba de la lista. "
-               "Adivinar daría la tasa base. XGBoost queda casi empatado: con bootstrap LightGBM lo supera por "
-               "0,002, una diferencia real pero pequeña.")
+    dif_xgb = f"{abs(comp.loc['LightGBM', 'pr_auc'] - comp.loc['XGBoost', 'pr_auc']):.3f}".replace(".", ",")
+    seg = {m_: f"{v:,.0f}".replace(",", ".") for m_, v in TIEMPO_AWS_S.items()}
+    lento_txt = f"{lento:.1f}".replace(".", ",")
+    st.caption("PR-AUC mide qué tan bien el modelo pone los vuelos que se retrasan arriba de la lista; "
+               f"adivinar da la tasa base. LightGBM y XGBoost quedan casi empatados ({dif_xgb} de diferencia). "
+               f"En la corrida final en AWS, XGBoost tardó {seg['XGBoost']} s en entrenar y LightGBM "
+               f"{seg['LightGBM']} s ({lento_txt} veces menos). Por una diferencia tan pequeña, el equipo "
+               "escogió el modelo más rápido de entrenar y actualizar.")
+
+PASOS_ABLACION = [
+    ("Solo datos<br>fijos", "[ablación] LightGBM estáticas"),
+    ("+ historial<br>de retrasos", "[ablación] LightGBM + historial"),
+    ("+ rotación<br>del avión", "[ablación] LightGBM + horario/rotación"),
+    ("+ cómo va<br>el día", "LightGBM"),
+]
+hay_ablacion = all(c in comp.index for _, c in PASOS_ABLACION)
 
 with col_b:
-    pasos = [
-        ("Solo datos<br>fijos", "[ablación] LightGBM estáticas"),
-        ("+ historial<br>de retrasos", "[ablación] LightGBM + historial"),
-        ("+ rotación<br>del avión", "[ablación] LightGBM + horario/rotación"),
-        ("+ cómo va<br>el día", "LightGBM"),
-    ]
-    vals = [comp.loc[c, "pr_auc"] for _, c in pasos]
-    saltos = [None] + [vals[i] - vals[i - 1] for i in range(1, len(vals))]
-    i_max = max(range(1, len(vals)), key=lambda i: saltos[i])
-    titulo_3 = ("Lo que más mejora la predicción es conocer<br>"
-                "la rotación del avión y cómo viene su día")
-    fig3 = go.Figure(go.Bar(
-        x=[p for p, _ in pasos], y=vals, width=0.55,
-        marker_color=[DORADO if i == i_max else (AZUL if i == len(vals) - 1 else GRIS_CLARO)
-                      for i in range(len(vals))],
-        text=[f"{v:.3f}".replace(".", ",") + ("" if s is None else f"<br>(+{s:.3f})".replace(".", ","))
-              for v, s in zip(vals, saltos)],
-        textposition="outside", textfont=dict(size=12, color=TEXTO_SUAVE), cliponaxis=False,
-        constraintext="none",
-        hovertemplate="%{x}<br>PR-AUC <b>%{y:.3f}</b><extra></extra>",
-    ))
-    fig3.add_hline(y=azar, line_dash="dot", line_color=GRIS, line_width=1.5)
-    fig3.add_annotation(x=0, xref="paper", xanchor="left", y=azar, yref="y", yshift=10,
-                        text=f"Adivinar: {azar:.3f}".replace(".", ","), showarrow=False,
-                        font=dict(color=TEXTO_SUAVE, size=11))
-    layout_base(fig3, titulo_3, alto=380)
-    fig3.update_yaxes(title="PR-AUC", range=[0, max(vals) * 1.3], showgrid=False, showticklabels=False)
-    fig3.update_xaxes(tickfont=dict(size=11), tickangle=0)
-    fig3.update_layout(margin=dict(t=80))
-    st.plotly_chart(fig3, width="stretch")
-    st.caption("Estudio de ablación: el mismo LightGBM entrenado agregando un grupo de variables a la vez. "
-               "Datos fijos = ruta, aerolínea, hora y fecha. Historial = tasas de retraso pasadas por ruta, "
-               "aeropuerto, aerolínea y avión. Rotación = congestión programada del aeropuerto, número de tramo "
-               "del avión en el día y tiempo entre tramos. "
-               "Cómo va el día = lo que ya pasó ese día en el avión y el aeropuerto. Todo se conoce 4 horas "
-               "antes de la salida.")
+    if not hay_ablacion:   # en producción (AWS) se omitió para ahorrar memoria
+        st.info("Esta corrida del modelo no incluye el estudio de ablación (se omitió en producción para "
+                "ahorrar memoria en AWS). En la corrida completa, lo que más mejoró la predicción fue "
+                "conocer la rotación del avión.", icon="ℹ️")
+    else:
+        pasos = PASOS_ABLACION
+        vals = [comp.loc[c, "pr_auc"] for _, c in pasos]
+        saltos = [None] + [vals[i] - vals[i - 1] for i in range(1, len(vals))]
+        i_max = max(range(1, len(vals)), key=lambda i: saltos[i])
+        titulo_3 = ("Lo que más mejora la predicción es conocer<br>"
+                    "la rotación del avión y cómo viene su día")
+        fig3 = go.Figure(go.Bar(
+            x=[p for p, _ in pasos], y=vals, width=0.55,
+            marker_color=[DORADO if i == i_max else (AZUL if i == len(vals) - 1 else GRIS_CLARO)
+                          for i in range(len(vals))],
+            text=[f"{v:.3f}".replace(".", ",") + ("" if s is None else f"<br>(+{s:.3f})".replace(".", ","))
+                  for v, s in zip(vals, saltos)],
+            textposition="outside", textfont=dict(size=12, color=TEXTO_SUAVE), cliponaxis=False,
+            constraintext="none",
+            hovertemplate="%{x}<br>PR-AUC <b>%{y:.3f}</b><extra></extra>",
+        ))
+        fig3.add_hline(y=azar, line_dash="dot", line_color=GRIS, line_width=1.5)
+        fig3.add_annotation(x=0, xref="paper", xanchor="left", y=azar, yref="y", yshift=10,
+                            text=f"Adivinar: {azar:.3f}".replace(".", ","), showarrow=False,
+                            font=dict(color=TEXTO_SUAVE, size=11))
+        layout_base(fig3, titulo_3, alto=380)
+        fig3.update_yaxes(title="PR-AUC", range=[0, max(vals) * 1.3], showgrid=False, showticklabels=False)
+        fig3.update_xaxes(tickfont=dict(size=11), tickangle=0)
+        fig3.update_layout(margin=dict(t=80))
+        st.plotly_chart(fig3, width="stretch")
+        st.caption("Estudio de ablación: el mismo LightGBM entrenado agregando un grupo de variables a la vez. "
+                   "Datos fijos = ruta, aerolínea, hora y fecha. Historial = tasas de retraso pasadas por ruta, "
+                   "aeropuerto, aerolínea y avión. Rotación = congestión programada del aeropuerto, número de tramo "
+                   "del avión en el día y tiempo entre tramos. "
+                   "Cómo va el día = lo que ya pasó ese día en el avión y el aeropuerto. Todo se conoce 4 horas "
+                   "antes de la salida.")
 
 # ---------------------------------------------------------------------------
-# Gráfica 4: ¿las probabilidades dicen la verdad? (calibración por grupos)
+# Gráficas 4 y 5: ¿las probabilidades dicen la verdad? Una idea por gráfica:
+# primero por hora del día y luego por temporada (antes estaban juntas en una sola).
 # ---------------------------------------------------------------------------
-grupos = (franja.rename(columns={"Franja horaria": "grupo"}).assign(tipo="Franja horaria"))
-grupos = pd.concat([grupos, temporada.rename(columns={"Temporada": "grupo"}).assign(tipo="Temporada")],
-                   ignore_index=True)
-grupos = grupos.iloc[::-1].reset_index(drop=True)   # de arriba hacia abajo en el orden del archivo
-dif_max = (grupos["tasa_predicha"] - grupos["tasa_real"]).abs().max()
+def pesas(df: pd.DataFrame, col: str, titulo: str, x_max: float) -> go.Figure:
+    """Gráfico de pesas: punto azul = lo que pasó, rombo dorado = lo que el modelo esperaba."""
+    d = df.rename(columns={col: "grupo"}).iloc[::-1].reset_index(drop=True)
+    fig = go.Figure()
+    for _, r in d.iterrows():
+        fig.add_trace(go.Scatter(x=[r["tasa_real"], r["tasa_predicha"]], y=[r["grupo"]] * 2, mode="lines",
+                                 line=dict(color=GRIS_CLARO, width=4), hoverinfo="skip", showlegend=False))
+    fig.add_trace(go.Scatter(x=d["tasa_real"], y=d["grupo"], mode="markers", name="Real",
+                             marker=dict(color=AZUL, size=13),
+                             hovertemplate="%{y}<br>Real: <b>%{x:.1%}</b><extra></extra>"))
+    fig.add_trace(go.Scatter(x=d["tasa_predicha"], y=d["grupo"], mode="markers", name="Predicho",
+                             marker=dict(color=DORADO, size=13, symbol="diamond"),
+                             hovertemplate="%{y}<br>Predicho: <b>%{x:.1%}</b><extra></extra>"))
+    layout_base(fig, titulo, alto=340)
+    fig.update_layout(showlegend=True, legend=dict(orientation="h", y=1.0, yanchor="bottom", x=0, xanchor="left"),
+                      margin=dict(t=110))
+    fig.update_xaxes(title="% de vuelos con retraso", tickformat=".0%", showgrid=True, gridcolor="#f1f5f9",
+                     range=[0, x_max])
+    fig.update_yaxes(showgrid=False, title=None)
+    return fig
 
-dif_txt = f"{dif_max * 100:.1f}".replace(".", ",")
-titulo_4 = ("Cuando el modelo dice 30 %, se retrasan cerca de 30 de cada 100:<br>"
-            f"lo predicho y lo real difieren a lo sumo {dif_txt} puntos en cada grupo")
-fig4 = go.Figure()
-for _, r in grupos.iterrows():   # línea que une real y predicho (gráfico de pesas)
-    fig4.add_trace(go.Scatter(x=[r["tasa_real"], r["tasa_predicha"]], y=[r["grupo"]] * 2, mode="lines",
-                              line=dict(color=GRIS_CLARO, width=4), hoverinfo="skip", showlegend=False))
-fig4.add_trace(go.Scatter(x=grupos["tasa_real"], y=grupos["grupo"], mode="markers", name="Real",
-                          marker=dict(color=AZUL, size=13),
-                          hovertemplate="%{y}<br>Real: <b>%{x:.1%}</b><extra></extra>"))
-fig4.add_trace(go.Scatter(x=grupos["tasa_predicha"], y=grupos["grupo"], mode="markers", name="Predicho",
-                          marker=dict(color=DORADO, size=13, symbol="diamond"),
-                          hovertemplate="%{y}<br>Predicho: <b>%{x:.1%}</b><extra></extra>"))
-layout_base(fig4, titulo_4, alto=430)
-fig4.update_layout(showlegend=True, legend=dict(orientation="h", y=1.0, yanchor="bottom", x=0, xanchor="left"),
-                   margin=dict(t=110))
-fig4.update_xaxes(title="% de vuelos con retraso", tickformat=".0%", showgrid=True, gridcolor="#f1f5f9",
-                  range=[0, grupos[["tasa_real", "tasa_predicha"]].max().max() * 1.15])
-fig4.update_yaxes(showgrid=False, title=None)
-st.plotly_chart(fig4, width="stretch")
-ece_txt = f"{comp.loc['LightGBM', 'ece'] * 100:.2f}".replace(".", ",")
-st.caption("Azul = lo que pasó; dorado = lo que el modelo esperaba en promedio. Puntos casi encima uno del "
-           f"otro = probabilidades confiables. Error de calibración global (ECE): {ece_txt} %.")
+
+def dif_max(df: pd.DataFrame) -> str:
+    return f"{(df['tasa_predicha'] - df['tasa_real']).abs().max() * 100:.1f}".replace(".", ",")
+
+
+st.subheader("¿Las probabilidades dicen la verdad?")
+st.caption("Si el modelo dice 30 %, deberían retrasarse cerca de 30 de cada 100 vuelos. "
+           "Azul = lo que pasó; dorado = lo que el modelo esperaba en promedio.")
+x_max = max(franja[["tasa_real", "tasa_predicha"]].max().max(),
+            temporada[["tasa_real", "tasa_predicha"]].max().max()) * 1.15   # misma escala en ambas
+col_c, col_d = st.columns(2, gap="large")
+with col_c:
+    st.plotly_chart(pesas(franja, "Franja horaria",
+                          f"Por hora del día: lo predicho y lo real<br>difieren a lo sumo {dif_max(franja)} puntos",
+                          x_max), width="stretch")
+with col_d:
+    st.plotly_chart(pesas(temporada, "Temporada",
+                          f"Por temporada: lo predicho y lo real<br>difieren a lo sumo {dif_max(temporada)} puntos",
+                          x_max), width="stretch")
+ece_txt = f"{comp.loc[ELEGIDO, 'ece'] * 100:.2f}".replace(".", ",")
+st.caption("Puntos casi encima uno del otro = probabilidades confiables. "
+           f"Error de calibración global (ECE): {ece_txt} %.")
 
 # ---------------------------------------------------------------------------
 # Glosario para la sustentación y mensaje
 # ---------------------------------------------------------------------------
+ponderado_txt = (f" (ECE de {comp.loc['[experimento] LightGBM ponderado', 'ece']:.3f} con pesos vs "
+                 f"{comp.loc['LightGBM', 'ece']:.3f} sin pesos)"
+                 if "[experimento] LightGBM ponderado" in comp.index else "")
 with st.expander("¿Qué significa cada métrica? (explicación sencilla)"):
     st.markdown(f"""
 - **Precisión del top-k:** de los vuelos que el modelo marcó como más riesgosos, cuántos sí se retrasaron.
@@ -227,8 +267,7 @@ with st.expander("¿Qué significa cada métrica? (explicación sencilla)"):
   un umbral. Adivinar al azar da la tasa base ({azar:.3f}). Se usa en vez de *accuracy* porque solo 23 de cada
   100 vuelos se retrasan: un modelo que diga siempre "no se retrasa" tendría 77 % de accuracy y no serviría.
 - **Calibración (ECE):** si el modelo dice 30 %, ¿se retrasan 30 de cada 100? Un ECE cercano a 0 dice que sí.
-  Por eso no se balancearon las clases: hacerlo deja el PR-AUC igual pero daña la calibración
-  (ECE de {comp.loc['[experimento] LightGBM ponderado', 'ece']:.3f} con pesos vs {comp.loc['LightGBM', 'ece']:.3f} sin pesos).
+  Por eso no se balancearon las clases: hacerlo deja el PR-AUC igual pero daña la calibración{ponderado_txt}.
 - **Umbral por costo:** se supuso que no anticipar un retraso cuesta {config['cost_fn']} veces lo que una
   falsa alarma; con eso el umbral queda en {comp.loc['LightGBM', 'umbral']:.2f} de probabilidad.
 """.replace("0.", "0,"))
