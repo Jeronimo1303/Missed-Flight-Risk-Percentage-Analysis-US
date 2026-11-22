@@ -1,0 +1,3 @@
+,pr_auc_val,roc_auc_val,brier_val,tiempo_entrenamiento_s,arboles,fuente_tiempo
+LightGBM,0.5283471698943587,0.7524955991480693,0.14224413906256883,716.6,930,registro del equipo (consola SageMaker)
+XGBoost,0.5314668739918593,0.7546382137213997,0.14176411373566764,2516.62,1803,run_config.json
