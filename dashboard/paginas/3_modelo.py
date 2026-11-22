@@ -32,6 +32,11 @@ st.info("Esta página muestra el resultado de la prueba del modelo: los filtros 
 # ---------------------------------------------------------------------------
 topk = cargar_modelo("top_k_priorizacion")                       # 1, 5, 10, 20, 30 %
 comp = cargar_modelo("model_comparison_full")
+# La corrida final en AWS omitió el estudio de ablación (memoria); se conserva el de la corrida local,
+# que usa el mismo LightGBM (PR-AUC 0,545 en ambas).
+_abl = DATA / "modelo" / "ablacion_corrida_local.csv"
+if _abl.exists() and not comp["modelo"].str.startswith("[").any():
+    comp = pd.concat([comp, pd.read_csv(_abl)], ignore_index=True)
 comp = comp[comp["umbral_tipo"] == "costo (validación)"].set_index("modelo")
 config = json.loads((DATA / "modelo" / "run_config.json").read_text(encoding="utf-8"))
 azar = float((topk["precision"] / topk["lift"]).mean())          # tasa base del tramo de prueba
@@ -197,7 +202,7 @@ with col_b:
         fig3.update_xaxes(tickfont=dict(size=11), tickangle=0)
         fig3.update_layout(margin=dict(t=80))
         st.plotly_chart(fig3, width="stretch")
-        st.caption("Estudio de ablación: el mismo LightGBM entrenado agregando un grupo de variables a la vez. "
+        st.caption("Estudio de ablación (corrida local del equipo): el mismo LightGBM entrenado agregando un grupo de variables a la vez. "
                    "Datos fijos = ruta, aerolínea, hora y fecha. Historial = tasas de retraso pasadas por ruta, "
                    "aeropuerto, aerolínea y avión. Rotación = congestión programada del aeropuerto, número de tramo "
                    "del avión en el día y tiempo entre tramos. "
