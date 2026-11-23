@@ -1,0 +1,19 @@
+{
+  "conjuntos": {
+    "prueba": {
+      "desde": "2025-09-01",
+      "hasta": "2026-08-31",
+      "vuelos_muestra": 1000000,
+      "vuelos_poblacion": null,
+      "umbral": 0.25,
+      "generado": "2026-11-22T06:47:59.495278+00:00",
+      "modelo": "lgbm-f64-seed42-h240-20261122T031926Z-trial-038"
+    }
+  },
+  "modelo": "lgbm-f64-seed42-h240-20261122T031926Z-trial-038",
+  "costo_fp": 1,
+  "costo_fn": 3,
+  "horizonte_min": 240,
+  "train_end": "2024-12-31",
+  "val_end": "2025-08-31"
+}
