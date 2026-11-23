@@ -1,0 +1,76 @@
+{
+  "Comment": "BTS monthly ZIP to Raw and Parquet Bronze with Lambda, then Bronze to Silver with existing Glue job",
+  "StartAt": "GeneratePeriods",
+  "States": {
+    "GeneratePeriods": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "bts-generate-periods",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Next": "IngestPeriods"
+    },
+    "IngestPeriods": {
+      "Type": "Map",
+      "ItemsPath": "$.periods",
+      "MaxConcurrency": 2,
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "IngestMonth",
+        "States": {
+          "IngestMonth": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "bts-ingestion",
+              "Payload.$": "$"
+            },
+            "OutputPath": "$.Payload",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.TaskFailed",
+                  "States.Timeout"
+                ],
+                "IntervalSeconds": 15,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "ResultPath": null,
+      "Next": "BronzeToSilver"
+    },
+    "BronzeToSilver": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "bts-flights-bronze-to-silver",
+        "Arguments": {
+          "--BUCKET": "bts-flights-analysis",
+          "--EXPECTED_START": "2022-01",
+          "--EXPECTED_END.$": "$.end"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Glue.ConcurrentRunsExceededException"
+          ],
+          "IntervalSeconds": 60,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "ResultPath": "$.glue",
+      "End": true
+    }
+  }
+}
