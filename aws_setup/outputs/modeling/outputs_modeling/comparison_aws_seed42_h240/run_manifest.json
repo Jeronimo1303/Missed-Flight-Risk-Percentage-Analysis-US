@@ -1,0 +1,50 @@
+{
+  "tipo": "comparacion_aws_b1_b4",
+  "semilla": 42,
+  "horizonte_minutos": 240,
+  "precision": {
+    "LightGBM": "float64",
+    "XGBoost": "float64",
+    "Regresión logística": "B2 original",
+    "K-means": "B4 original"
+  },
+  "checkpoints_s3": {
+    "Regresión logística": "s3://bts-flights-analysis/modeling/checkpoints/logistic-regression-original-seed42-h240/",
+    "LightGBM": "s3://bts-flights-analysis/modeling/checkpoints/lightgbm-float64-original-seed42-h240/",
+    "XGBoost": "s3://bts-flights-analysis/modeling/checkpoints/xgboost-float64-original-seed42-h240/",
+    "K-means (tasa por clúster)": "s3://bts-flights-analysis/modeling/checkpoints/kmeans-original-seed42-h240/"
+  },
+  "seleccion_tuning": "LightGBM por eficiencia, no por máximo PR-AUC",
+  "nota": "Comparación oficial de etapa C; LightGBM/XGBoost usan entradas float64. El archivo veredicto.json describe una regla histórica basada en prueba, no la decisión de despliegue.",
+  "archivos": [
+    "bootstrap_differences.csv",
+    "calibration_comparison.csv",
+    "calidad_vs_costo_entrenamiento.csv",
+    "comparacion_local_vs_aws.csv",
+    "comparison_alert_budget.csv",
+    "comparison_threshold_common.csv",
+    "comparison_threshold_cost.csv",
+    "decision_candidato_tuning.json",
+    "feature_importance.csv",
+    "figures/calibration.png",
+    "figures/calidad_vs_tiempo.png",
+    "figures/confusion_matrices.png",
+    "figures/feature_importance.png",
+    "figures/roc_pr_curves.png",
+    "figures/subgrupos_aerolínea.png",
+    "figures/subgrupos_aeropuerto_de_origen.png",
+    "figures/subgrupos_franja_horaria.png",
+    "figures/subgrupos_temporada.png",
+    "model_comparison_full.csv",
+    "ranking_modelos.csv",
+    "seleccion_validacion.csv",
+    "subgrupos_aerolínea.csv",
+    "subgrupos_aeropuerto_de_origen.csv",
+    "subgrupos_franja_horaria.csv",
+    "subgrupos_senalados.csv",
+    "subgrupos_temporada.csv",
+    "top_k_priorizacion.csv",
+    "veredicto.json",
+    "veredicto_validacion.json"
+  ]
+}

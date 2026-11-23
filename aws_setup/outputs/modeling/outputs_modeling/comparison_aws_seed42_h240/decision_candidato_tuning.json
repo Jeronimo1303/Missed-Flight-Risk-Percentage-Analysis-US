@@ -1,0 +1,29 @@
+{
+  "etapa": "seleccion_de_candidato_para_optuna",
+  "origen": "Etapa C - checkpoints AWS, seed42, horizon240; LightGBM y XGBoost con float64",
+  "mejor_pr_auc_validacion_sin_tuning": "XGBoost",
+  "candidato_para_tuning": "LightGBM",
+  "modelo_final_endpoint": null,
+  "criterio": "Equilibrio entre PR-AUC en validacion y tiempo observado de entrenamiento",
+  "pr_auc_validacion": {
+    "Regresión logística": 0.4707529702760106,
+    "LightGBM": 0.5283471698943587,
+    "XGBoost": 0.5314668739918593,
+    "K-means (tasa por clúster)": 0.398293897145059
+  },
+  "tiempos_entrenamiento_s": {
+    "LightGBM": 716.6,
+    "XGBoost": 2516.62
+  },
+  "fuente_tiempos": {
+    "LightGBM": "registro del equipo (consola SageMaker)",
+    "XGBoost": "run_config.json"
+  },
+  "arboles_observados": {
+    "LightGBM": 930,
+    "XGBoost": 1803
+  },
+  "diferencia_pr_auc_xgboost_menos_lightgbm": 0.0031197040975006196,
+  "factor_tiempo_xgboost_versus_lightgbm": 3.511889478090985,
+  "aclaracion": "XGBoost lidera PR-AUC sin tuning. LightGBM solo se elige para la optimizacion; el despliegue esta pendiente."
+}

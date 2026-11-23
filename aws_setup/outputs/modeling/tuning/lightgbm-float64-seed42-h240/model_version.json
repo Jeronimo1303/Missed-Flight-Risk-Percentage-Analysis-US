@@ -1,0 +1,5 @@
+{
+  "model_version": "lgbm-f64-seed42-h240-20261122T031926Z-trial-038",
+  "model_dir": "/home/ec2-user/SageMaker/outputs/model_registry/lgbm-f64-seed42-h240-20261122T031926Z-trial-038",
+  "archive_sha256": "1f2277547d650dd842b23378d1e29fbf62a2f00a207fe8863ecfd7299fe2bbfa"
+}

@@ -1,0 +1,11 @@
+{
+  "model_version": "lgbm-f64-seed42-h240-20261122T031926Z-trial-038",
+  "prediction_horizon_min": 240,
+  "predictions": [
+    {
+      "probability_delay_15min": 0.1232693936551733,
+      "alert": false
+    }
+  ],
+  "decision_threshold": 0.25
+}

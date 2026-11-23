@@ -1,0 +1,11 @@
+{
+  "candidato_segun_validacion": "XGBoost",
+  "criterio": "Máximo PR-AUC en validación (sin consultar prueba)",
+  "pr_auc_validacion": {
+    "Regresión logística": 0.4707529702760106,
+    "LightGBM": 0.5283471698943587,
+    "XGBoost": 0.5314668739918593,
+    "K-means (tasa por clúster)": 0.398293897145059
+  },
+  "nota": "La selección definitiva puede cambiar tras tuning y verificaciones posteriores"
+}

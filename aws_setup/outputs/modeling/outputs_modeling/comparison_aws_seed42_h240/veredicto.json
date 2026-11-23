@@ -1,0 +1,15 @@
+{
+  "mejor_modelo": "XGBoost",
+  "primero_en_pr_auc": "XGBoost",
+  "empatados": [
+    "XGBoost"
+  ],
+  "criterio": "PR-AUC en prueba; bootstrap pareado IC95; parsimonia ante empate",
+  "pr_auc_prueba": {
+    "Regresión logística": 0.4890630755844013,
+    "LightGBM": 0.5446309273825213,
+    "XGBoost": 0.5472309597315087,
+    "K-means (tasa por clúster)": 0.4183716903797733
+  },
+  "advertencia": "Reconstruye regla histórica sobre test: NO usar para elegir modelo a desplegar"
+}

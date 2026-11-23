@@ -1,0 +1,15 @@
+{
+  "selected_name": "trial_038",
+  "selected_trial": 38,
+  "selected_by": "pr_auc_validation",
+  "numeric_dtype": "float64",
+  "selected_pr_auc_val": 0.5318380036455427,
+  "baseline_pr_auc_val": 0.5283471698943587,
+  "best_tuned_name": "trial_038",
+  "best_tuned_pr_auc_val": 0.5318380036455427,
+  "decision_threshold_validation": 0.25591016998639843,
+  "decision_threshold_deployment": 0.25,
+  "run_id": "20261122T031926Z",
+  "n_trials": 40,
+  "reason": "Se seleccionó por validación, nunca por prueba. XGBoost no forma parte del tuning LightGBM."
+}
