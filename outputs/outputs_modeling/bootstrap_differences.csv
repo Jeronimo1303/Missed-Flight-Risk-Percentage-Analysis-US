@@ -1,4 +1,0 @@
-comparación,Δ PR-AUC,IC95 PR-AUC,Δ ROC-AUC,IC95 ROC-AUC,¿supera significativamente?
-LightGBM − XGBoost,0.0009176047893139083,"[+0.0003, +0.0016]",0.0006567838665341164,"[+0.0003, +0.0011]",sí
-LightGBM − Regresión logística,0.0558853379885087,"[+0.0540, +0.0580]",0.024242964772627773,"[+0.0231, +0.0254]",sí
-LightGBM − K-means (tasa por clúster),0.13240836690976937,"[+0.1301, +0.1353]",0.07067000082409369,"[+0.0689, +0.0725]",sí
