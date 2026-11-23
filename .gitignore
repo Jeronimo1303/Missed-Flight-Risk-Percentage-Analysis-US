@@ -5,3 +5,4 @@ __pycache__/
 data/silver
 data/gold
 src/duckdb_tmp
+*.vscode
